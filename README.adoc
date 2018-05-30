@@ -1,0 +1,112 @@
+# camunda-bpm-custom-batch
+
+[cols="a,a,a"]
+,====
+// mvn travis
+image::https://travis-ci.org/camunda/camunda-bpm-custom-batch.svg?branch=master[link="https://travis-ci.org/camunda/camunda-bpm-custom-batch"]
+// license
+image::https://img.shields.io/badge/License-Apache%202.0-blue.svg[link="./LICENSE"]
+// mvn central
+image::https://maven-badges.herokuapp.com/maven-central/org.camunda.bpm.extension.batch/camunda-bpm-custom-batch-core/badge.svg[link="https://maven-badges.herokuapp.com/maven-central/org.camunda.bpm.extension.batch/camunda-bpm-custom-batch-core"]
+,====
+
+
+The goal of this camunda extension is to provide an simple way of using the camunda batch functionality.
+Camunda Batch could be used to split a huge workload into small asynchronous jobs.
+With this extension, we want to open the camunda batch functionality to everyone.
+
+## Get started
+
+The extension will be published on maven central, so if you are using maven, just add the dependency:
+
+```
+<dependency>
+  <groupId>org.camunda.bpm.extension.batch</groupId>
+  <artifactId>camunda-bpm-custom-batch-core</artifactId>
+  <version>1.1.0</version>
+</dependency>
+```
+
+First you have to define an own job handler for working on the single batch data:
+
+```
+@Component
+public class PrintStringBatchJobHandler extends CustomBatchJobHandler<String> {
+  @Override
+  public void execute(List<String> data, CommandContext commandContext) {
+      logger.info("Work on data: {}", data.get(0));
+  }
+
+  @Override
+  public String getType() {
+      return "print-string-batch-handler";
+  }
+}
+```
+
+Next you have to notify the engine about this job handler, e.g. with spring-boot:
+
+```
+@Bean
+public ProcessEnginePlugin customBatchHandlerPlugin(PrintStringBatchJobHandler printStringBatchJobHandler) {
+  return CustomBatchHandlerPlugin.of(printStringBatchJobHandler);
+}
+```
+
+Finally, the creation of the batch itself:
+
+```
+CustomBatchBuilder.of(listOfStringData)
+  .jobHandler(printStringBatchJobHandler)
+  .create();
+```
+
+Or with more configuration:
+
+```
+CustomBatchBuilder.of(listOfStringData)
+  .configuration(engineConfiguration)
+  .jobHandler(printStringBatchJobHandler)
+  .jobsPerSeed(10)
+  .invocationsPerBatchJob(5)
+  .create(engineConfiguration.getCommandExecutorTxRequired());
+```
+
+## Resources
+
+* link:./extension/README.adoc[User Guide]
+
+* _https://github.com/camunda/camunda-bpm-custom-batch/issues[Issue Tracker]_
+
+* _https://forum.camunda.org/c/community-extensions/custom-batch[Discussion Forum]_
+
+* _https://docs.camunda.org/manual/7.6/user-guide/process-engine/batch/[Camunda Batch Docs]_
+
+* link:./CONTRIBUTE.md[Contributing] - check this if you want to contribute
+
+## Roadmap
+
+**todo**
+
+- Provide a data collector class
+- Provide a timer job for automatically triggering of batch creation
+
+**done**
+
+- Provide initial version
+
+
+## Maintainer
+
+* [Patrick Schalk](_https://github.com/pschalk_) - [Holisticon AG](_http://www.holisticon.de/_)
+* [Stefan Becke](_https://github.com/stefanbecke_) - [Kühne + Nagel](_https://home.kuehne-nagel.com/_)
+
+## Sponsor
+
+image::./docs/sponsor_kn.jpeg[alt="Logo"]
+_https://home.kuehne-nagel.com/[Kühne + Nagel]_
+
+
+## License
+
+Apache License, Version 2.0
