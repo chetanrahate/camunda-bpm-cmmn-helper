@@ -14,5 +14,6 @@
 
   <modules>
     <module>axon-managed-state</module>
+    <module>entry-criterion-repetition</module>
   </modules>
 </project>
